@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Examify - GU 2015</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <script type="text/javascript" src="js/jquery-2.1.3.min.js"></script>
+  <script type="text/javascript" src="js/date.format.js"></script>
+  <script type="text/javascript" src="js/ics.deps.min.js"></script>
+  <script type="text/javascript" src="js/ics.js"></script>
+  <link href='http://fonts.googleapis.com/css?family=Roboto:400,300,200' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="css/style.css"></link>
+  <script type="text/javascript">
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-60949018-1', 'auto');
+    ga('send', 'pageview');
+  </script>
+</head>
+<body>
+  <div id="headBar">
+  <div class="cont" style="padding: 0 10px 0 10px ">
+    <img src="img/logo.png" style="height: 50px; float: left">
+    <div id="expLabel" onclick="toggleExp()">
+      <div id="expClosed">
+        
+        <div id="expIcon">
+          0
+        </div>
+      </div>
+      <div id="expOpen" style="display: none">
+        Back
+      </div>
+    </div>
+  </div>
+    <div id="inBox">
+      <div class="cont">
+        <input id="search" type="text" placeholder="Search for your exam...">
+      </div>
+    </div>
+    <div id="expList">
+      <div class="cont" id="expCont">
+        <span class="expHead">Your Timetable</span>
+      </div>
+    </div>
+  </div>
+  <div class="cont">
+    <div id="results">
+      <div class="card" style="margin-top: 20px; text-align: center">
+        Data accurate as of 18th March 2015. Examify is not affiliated with University Of Glasgow.<br>
+        <a href="http://twitter.com/JrdnDncn">@JrdnDncn</a><br>
+      </div>
+    </div>  
+  </div>
+  <div id="footer" style="display:none">
+    Data accurate as of 18th March 2015. Examify is not affiliated with University Of Glasgow.<br>
+    <a href="http://twitter.com/JrdnDncn">@JrdnDncn</a>
+  </div>
+    
+  <script type="text/javascript">
+
+    var examObj = {};
+    var examArr = [];
+
+    $.getJSON( "tt/exams.json", function( data ) {
+      examObj = data;
+    });
+
+    function exTog(exId){
+      if($('#'+exId).data('open') != true){
+        if($('#'+exId).data('pop') != true){
+          var dt1   = parseInt(examObj[exId].date.substring(0,2));
+          var mon1  = parseInt(examObj[exId].date.substring(3,5));
+          var yr1   = parseInt(examObj[exId].date.substring(6,10));
+          var examDate = new Date(yr1, mon1-1, dt1);
+
+          var dateString = examDate.format("ddd, dS mmm yyyy");
+
+          $('#'+exId).data({'hei': $('#'+exId).height()});
+
+          $('#'+exId).append('\
+            <div id="rem'+exId+'">\
+              <div class="line"></div>\
+              <span class="location">'+examObj[exId].loc+'</span><br>\
+              <span class="timedate">'+dateString+' // <span style="color: #888">'+examObj[exId].start+' - '+examObj[exId].end+'</span></span>\
+              <div style="height: 10px;width:100%"></div>\
+              <span class="id">'+exId+'</span>\
+              <button style="margin: -10px 0 15px 0" onclick="addToList(\''+exId+'\')" class="ripple">Add To My Timetable</button>\
+            </div>\
+          ');
+          $('#'+exId).data({'pop':true});
+        }
+        $('#'+exId).animate({
+          height: $('#title'+exId).height() + 10 + $('#rem'+exId).height(),
+          width: '+=20px',
+          marginTop: '6px',
+          marginBottom: '6px',
+          marginLeft: '-10px',
+          padding: '10px',
+          backgroundColor: 'white'
+        },100);
+        $('#'+exId).data({'open':true});
+      } else {
+        $('#'+exId).animate({
+          height: $('#title'+exId).height() - 1,
+          width: '-=20px',
+          marginTop: '1px',
+          marginBottom: '1px',
+          marginLeft: '0px',
+          backgroundColor: '#EFEFEF'
+        },100);
+        $('#'+exId).data({'open':false});
+        //$('#rem'+exId).remove();
+      }
+        
+      $('#'+exId).toggleClass('shadow');
+    }
+
+    function toggleExp(){
+      if($('#expIcon').data('open')!=true){
+        $("#search").animate({
+          opacity: '0',
+          marginBottom: '-40px'
+        },150);
+
+        if(examArr.length == 0){
+          $('#expCont').html('<span class="expHead">Your timetable is empty.</span>');
+        } else {
+          $('#expCont').html('<span class="expHead">Your Timetable</span> <button onclick="downloadCal()" class="ripple">Download</button><div style="clear: both"></div>');
+        }
+
+        var key = 'hi';
+        var val = {'name':'woo'};
+
+        $.each(examArr, function(key,val){
+          var obj = examObj[val];
+
+          var dt1   = parseInt(obj.date.substring(0,2));
+          var mon1  = parseInt(obj.date.substring(3,5));
+          var yr1   = parseInt(obj.date.substring(6,10));
+          var examDate = new Date(yr1, mon1-1, dt1);
+
+          var dateString = examDate.format("ddd, dS mmm yyyy");
+
+          $('#expCont').append('\
+            <div style="margin-top:10px" class="card">\
+              <span class="title">'+obj.name+'</span><br>\
+              <div>\
+                <div class="line"></div>\
+                <span class="location">'+obj.loc+'</span><br>\
+                <span class="timedate">'+dateString+' // <span style="color: #888">'+obj.start+' - '+obj.end+'</span></span>\
+                <div style="height: 10px;width:100%"></div>\
+                <span class="id">'+val+'</span><br>\
+                <button onclick="removeFromList(\''+val+'\')" class="ripple">Remove</button>\
+              </div>\
+            </div>\
+          ');
+        });
+
+        $("#results").animate({
+          opacity: 0,
+          marginTop: '0px'
+        },200, function(){
+          $('#expClosed').hide();
+          $('#expOpen').show();
+          $("#headBar").animate({
+            height: $('#expList').height() + 70,
+          },250, function(){
+            $('#expList').animate({
+              opacity: 1,
+              marginTop: '-30px'
+            },200,function(){
+              $('#expIcon').data({'open':true});
+            });
+          });
+        });
+      } else {
+        $('#expList').animate({
+          opacity: 0,
+          marginTop: '0px'
+        },200,function(){
+          $('#expOpen').hide();
+          $('#expClosed').show();
+          $("#search").animate({
+            opacity: '1',
+            marginBottom: '0'
+          },200);
+          $("#headBar").animate({
+              height: '160px',
+            },250, function(){
+              $('#expIcon').data({'open':false});
+            });
+          $("#results").animate({
+            opacity: 1,
+            marginTop: '-50px'
+          },200, function(){
+            
+          });
+        });
+      }
+    }
+
+    function addToList(id){
+      if(examArr.indexOf(id) > -1){
+        return false;
+      } else {
+        examArr.push(id);
+        $('#expIcon').html(examArr.length);
+      }
+    }
+
+    function removeFromList(id){
+      if(examArr.indexOf(id) == -1){
+        return false;
+      } else {
+        var ind = examArr.indexOf(id);
+        examArr.splice(ind,1);
+        $("#expList").animate({
+          opacity: 0,
+          marginTop: '0px'
+        },200, function(){
+          $('#expCont').html('<span class="expHead">Your Timetable</span> <button onclick="downloadCal()" class="ripple">Download</button>');
+          $.each(examArr, function(key,val){
+            var obj = examObj[val];
+
+            var dt1   = parseInt(obj.date.substring(0,2));
+            var mon1  = parseInt(obj.date.substring(3,5));
+            var yr1   = parseInt(obj.date.substring(6,10));
+            var examDate = new Date(yr1, mon1-1, dt1);
+
+            var dateString = examDate.format("ddd, dS mmm yyyy");
+
+            $('#expCont').append('\
+              <div style="margin-top:10px" class="card">\
+                <span class="title">'+obj.name+'</span><br>\
+                <div>\
+                  <div class="line"></div>\
+                  <span class="location">'+obj.loc+'</span><br>\
+                  <span class="timedate">'+dateString+' // <span style="color: #888">'+obj.start+' - '+obj.end+'</span></span>\
+                  <div style="height: 10px;width:100%"></div>\
+                  <span class="id">'+val+'</span><br>\
+                  <button onclick="removeFromList(\''+val+'\')" class="ripple">Remove</button>\
+                </div>\
+              </div>\
+            ');
+          });
+
+          $("#headBar").animate({
+            height: $('#expList').height() + 70,
+          },250, function(){
+            $('#expList').animate({
+              opacity: 1,
+              marginTop: '-30px'
+            },200,function(){
+              $('#expIcon').data({'open':true});
+            });
+          });
+        });
+      }
+      $('#expIcon').html(examArr.length);
+    }
+
+    var cal;
+
+    function downloadCal(){
+      cal = ics();
+      $.each(examArr, function(key,val){
+        var obj = examObj[val];
+        var dateSpl = obj.date.split('/');
+        var date = dateSpl[1]+'/'+dateSpl[0]+'/'+dateSpl[2];
+        var start = new Date(date + ' ' + obj.start);
+        var end = new Date(date + ' ' + obj.end);
+
+        cal.addEvent((obj.name + ' Exam'),val,obj.loc,start,end);
+      });
+      cal.download('UofGExams');
+    }
+
+    $(window).resize(function() {
+      $(".card").width('auto');
+      if($(window).width()>820){
+        $(".cont").css('margin-left', ($(window).width() - 800) / 2 + 'px');
+      } else {
+        $(".cont").css('margin-left', '20px');
+      }
+    });
+
+    var clock;
+
+    $('#search').keyup(function(){
+      clearTimeout(clock);
+      clock = setTimeout(function(){
+        var inVal = $('#search').val().split(' ');
+        var items = [];
+
+        $("#results").animate({
+          opacity: 0,
+          marginTop: '0px'
+        },200);
+
+        setTimeout(function(){
+          $("#results").html('');
+
+          if(inVal.length == 0 || inVal[0] == ''){
+            $("#results").html('<div class="card" style="margin-top: 20px; text-align: center">\
+                Data accurate as of 18th March 2015. Examify is not affiliated with University Of Glasgow.<br>\
+                <a href="http://twitter.com/JrdnDncn">@JrdnDncn</a>\
+              </div>\
+            ');
+            $('#footer').hide();
+            return false;
+          }
+
+          $.each( examObj, function( key, val ) {
+            var isFound = true;
+            $.each( inVal, function( k,word ) {
+              if (val.name.toLowerCase().indexOf(word.toLowerCase()) == -1){
+                isFound = false;
+              }
+            });
+            if(isFound){
+              $("#results").append('\
+                <div class="card" id="'+key+'" onclick="exTog(\''+key+'\')">\
+                  <span id="title'+key+'"class="title">'+val.name+'</span><br>\
+                </div>\
+              ');
+            }
+          });
+        },200);
+
+        $("#results").animate({
+          opacity: 1,
+          marginTop: '-40px'
+        },100);
+
+        if(!$('#footer').is(":visible")){
+          setTimeout(function(){
+            $('#footer').show();
+          },300);
+        }
+      },300);
+    });
+
+    if($(window).width()>820){
+      $(".cont").css('margin-left', ($(window).width() - 800) / 2 + 'px');
+    } else {
+      $(".cont").css('margin-left', '20px');
+    }
+
+    console.info('oh, look at you in the developer tools, you must be a real 1337 h4x0r');
+  </script>
+</body>
+</html>
