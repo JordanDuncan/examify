@@ -93,25 +93,23 @@
           ');
           $('#'+exId).data({'pop':true});
         }
-        $('#'+exId).animate({
-          height: $('#title'+exId).height() + 10 + $('#rem'+exId).height(),
+        $('#'+exId).css({
+          height: $('#title'+exId).height() + 20 + $('#rem'+exId).height(),
           width: '+=20px',
           marginTop: '6px',
           marginBottom: '6px',
           marginLeft: '-10px',
-          padding: '10px',
-          backgroundColor: 'white'
-        },100);
+          padding: '10px'
+        });
         $('#'+exId).data({'open':true});
       } else {
-        $('#'+exId).animate({
+        $('#'+exId).css({
           height: $('#title'+exId).height() - 1,
           width: '-=20px',
           marginTop: '1px',
           marginBottom: '1px',
-          marginLeft: '0px',
-          backgroundColor: '#EFEFEF'
-        },100);
+          marginLeft: '0px'
+        });
         $('#'+exId).data({'open':false});
         //$('#rem'+exId).remove();
       }
@@ -266,13 +264,17 @@
     var cal;
 
     function downloadCal(){
+      if (navigator.userAgent.indexOf("Safari") > -1) {
+        return alert('Downloading does not work in Safari. Try Chrome or Firefox.');
+      }
+
       cal = ics();
       $.each(examArr, function(key,val){
         var obj = examObj[val];
         var dateSpl = obj.date.split('/');
         var date = dateSpl[1]+'/'+dateSpl[0]+'/'+dateSpl[2];
-        var start = new Date(date + ' ' + obj.start);
-        var end = new Date(date + ' ' + obj.end);
+        var start = date + ' ' + obj.start;
+        var end = date + ' ' + obj.end;
 
         cal.addEvent((obj.name + ' Exam'),val,obj.loc,start,end);
       });
@@ -296,10 +298,10 @@
         var inVal = $('#search').val().split(' ');
         var items = [];
 
-        $("#results").animate({
+        $("#results").css({
           opacity: 0,
           marginTop: '0px'
-        },200);
+        });
 
         setTimeout(function(){
           $("#results").html('');
@@ -331,10 +333,10 @@
           });
         },200);
 
-        $("#results").animate({
+        $("#results").css({
           opacity: 1,
           marginTop: '-40px'
-        },100);
+        });
 
         if(!$('#footer').is(":visible")){
           setTimeout(function(){
