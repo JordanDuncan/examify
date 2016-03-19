@@ -264,7 +264,7 @@
     var cal;
 
     function downloadCal(){
-      if (navigator.userAgent.indexOf("Safari") > -1) {
+      if (!!navigator.userAgent.match(/Version\/[\d\.]+.*Safari/)) {
         return alert('Downloading does not work in Safari. Try Chrome or Firefox.');
       }
 
